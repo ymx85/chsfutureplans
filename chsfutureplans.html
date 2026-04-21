@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHS Class of 2026 Future Plans</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: { 
+                        primary: '#1e40af', 
+                        secondary: '#bfdbfe',
+                        chsBlue: '#1e40af'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
+        
+        /* PORTRAIT CARDS: 5 PER ROW */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1.25rem;
+        }
+
+        .person-card { 
+            transition: all 0.2s ease; 
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .person-card:hover { 
+            transform: translateY(-4px); 
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); 
+        }
+
+        /* Portrait Aspect Ratio for the image area */
+        .card-image-container {
+            aspect-ratio: 3 / 4;
+            width: 100%;
+            overflow: hidden;
+            background-color: #e5e7eb;
+        }
+
+        .modal-overlay { 
+            transition: opacity 0.3s ease; 
+            display: none; 
+            position: fixed; 
+            inset: 0; 
+            background: rgba(0,0,0,0.75); 
+            z-index: 100; 
+            backdrop-filter: blur(4px); 
+            align-items: center; 
+            justify-content: center; 
+            padding: 1rem; 
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content { 
+            transform: scale(0.95); 
+            opacity: 0; 
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+            background: white; 
+            border-radius: 0.75rem; 
+            width: 100%; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); 
+        }
+        .active .modal-content { transform: scale(1); opacity: 1; }
+        
+        /* Mobile adjustment for the 3-row layout */
+        @media (max-width: 640px) {
+            .profile-grid { 
+                grid-template-columns: repeat(2, 1fr); /* Switched to 2 on mobile to fit reverted font size */
+                gap: 0.5rem; 
+            }
+            .person-card h2 { font-size: 0.875rem !important; }
+            .person-card p { font-size: 0.7rem !important; }
+            .p-6 { padding: 0.75rem !important; }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50 flex flex-col">
+
+    <!-- HEADER -->
+    <header class="bg-white shadow-md sticky top-0 z-40 py-8 px-4">
+        <div class="max-w-7xl mx-auto flex flex-col items-center text-center">
+            <img src="https://resources.finalsite.net/images/f_auto,q_auto/v1668797119/ccsk12inus/awfkuopbc2f6uupyira9/CarmelHighSchoolLogo.png" alt="CHS Greyhound Logo" class="h-16 w-auto mb-3" />
+            <h1 class="text-2xl md:text-4xl font-extrabold text-blue-800 leading-tight">Class of 2026<br>Future Plans</h1>
+            <p class="text-gray-500 mt-2 text-sm italic font-medium mb-6">Brought to you by <a href="https://hilite.org" class="hover:text-blue-600 underline text-blue-800">HiLite News.</a></p>
+
+            <!-- SEARCH BAR -->
+            <div class="relative w-full max-w-md mb-6">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input type="text" id="search-bar" onkeyup="renderGrids()" placeholder="Search name, college, or major..." 
+                    class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-full bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all">
+            </div>
+
+            <div class="flex flex-col items-center gap-3">
+                <button id="add-profile-btn" onclick="openModal('add-modal')" class="bg-blue-800 text-white font-extrabold py-3 px-8 rounded-lg shadow-lg hover:bg-blue-700 transition duration-150 flex items-center gap-2">
+                    <i class="fas fa-plus"></i> Add Your Plan
+                </button>
+                <button id="logout-btn" class="hidden text-gray-500 text-sm font-semibold hover:underline" onclick="adminLogout()">Admin Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- PENDING SECTION (Admin Only) -->
+    <div id="pending-section" class="hidden bg-amber-50 border-b border-amber-200 p-6">
+        <div class="max-w-7xl mx-auto text-center">
+            <h2 class="text-lg font-extrabold text-amber-800 mb-4 italic"><i class="fas fa-clock mr-2"></i> Pending Approvals</h2>
+            <div id="pending-grid" class="profile-grid"></div>
+        </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <main class="max-w-7xl mx-auto p-4 md:p-12 flex-grow w-full">
+        <div id="profile-grid" class="profile-grid"></div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="py-10 text-center">
+        <button id="login-trigger" onclick="openModal('admin-login-modal')" class="text-gray-300 hover:text-gray-500 text-xs transition-colors font-medium">Admin Login</button>
+    </footer>
+
+    <!-- ADD/EDIT MODAL -->
+    <div id="add-modal" class="modal-overlay" onclick="closeModal('add-modal')">
+        <div class="modal-content max-w-lg p-6 md:p-8" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-6 border-b-2 border-blue-100 pb-4">
+                <h2 id="modal-title" class="text-2xl font-bold text-blue-800">Submit Your Plan</h2>
+                <button onclick="closeModal('add-modal')" class="text-gray-400 hover:text-blue-700 transition-colors"><i class="fas fa-times text-2xl"></i></button>
+            </div>
+            <form id="submission-form" class="space-y-4">
+                <input type="hidden" id="edit-id">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-widest">First Name</label>
+                        <input type="text" id="first-name" required class="w-full p-3 border border-blue-100 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-widest">Last Name</label>
+                        <input type="text" id="last-name" required class="w-full p-3 border border-blue-100 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-widest">Plan Category</label>
+                        <input type="text" id="plan-category" placeholder="e.g. College" class="w-full p-3 border border-blue-100 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-widest">Institution</label>
+                        <input type="text" id="college" placeholder="e.g. Purdue University" class="w-full p-3 border border-blue-100 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-widest">Intended Major / Focus</label>
+                    <input type="text" id="major" placeholder="e.g. Business Administration" class="w-full p-3 border border-blue-100 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <div class="md:col-span-1">
+                        <label class="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-widest">Type</label>
+                        <select id="social-type" class="w-full p-3 border border-blue-100 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="instagram">Instagram</option><option value="tiktok">TikTok</option><option value="phone">Phone</option><option value="email">Email</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-widest">Handle / Info</label>
+                        <input type="text" id="social" placeholder="username" class="w-full p-3 border border-blue-100 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-widest">Photo (Optional)</label>
+                    <input type="file" id="photo" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-blue-50 file:text-blue-800 font-semibold">
+                </div>
+                <div class="pt-4">
+                    <button type="submit" id="submit-btn-text" class="w-full bg-blue-800 text-white font-extrabold py-4 rounded-lg shadow-md hover:bg-blue-900 transition active:scale-95 uppercase tracking-wider">Submit for Approval</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADMIN LOGIN MODAL -->
+    <div id="admin-login-modal" class="modal-overlay" onclick="closeModal('admin-login-modal')">
+        <div class="modal-content max-w-sm p-8 text-center" onclick="event.stopPropagation()">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Admin Access</h2>
+            <input type="password" id="admin-pass" placeholder="Password" class="w-full p-3 border border-gray-300 rounded-lg mb-4 text-center outline-none focus:ring-2 focus:ring-blue-500">
+            <div class="flex gap-2">
+                <button onclick="closeModal('admin-login-modal')" class="flex-1 bg-gray-100 py-2 rounded-lg font-bold text-gray-600">Cancel</button>
+                <button onclick="adminLogin()" class="flex-1 bg-blue-800 text-white py-2 rounded-lg font-bold">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ADMIN_PASSWORD = "greyhounds2026"; 
+        let isAdmin = false;
+        const SOCIAL_ICONS = { instagram: 'fab fa-instagram', tiktok: 'fab fa-tiktok', phone: 'fas fa-phone-alt', email: 'fas fa-envelope' };
+
+        const initialData = [
+            { id: 1000, firstName: "Georgia", lastName: "Kraabel", planCategory: "College", college: "Miami University", major: "Undecided", socialType: "email", social: "georgiak1883@gmail.com", photo: "", status: 'approved' },
+            { id: 1001, firstName: "Bhavana", lastName: "Rupakula", planCategory: "College", college: "Purdue University", major: "Undecided", socialType: "phone", social: "(425) 469-4918", photo: "", status: 'approved' },
+            { id: 1002, firstName: "Jack", lastName: "Miller", planCategory: "College", college: "Johns Hopkins University", major: "Undecided", socialType: "instagram", social: "", photo: "", status: 'approved' },
+            { id: 1003, firstName: "Elliot", lastName: "Gabey", planCategory: "College", college: "University of Arkansas", major: "Undecided", socialType: "instagram", social: "elliotgabey", photo: "", status: 'approved' },
+            { id: 1004, firstName: "Naaman", lastName: "Duckworth", planCategory: "College", college: "American University", major: "Undecided", socialType: "phone", social: "3173856083", photo: "", status: 'approved' },
+            { id: 1005, firstName: "Eva", lastName: "Marci", planCategory: "College", college: "Western Washington University", major: "Undecided", socialType: "instagram", social: "eva_marci1", photo: "", status: 'approved' },
+            { id: 1006, firstName: "Ruby", lastName: "Cummings", planCategory: "College", college: "Johnson and Wales", major: "Undecided", socialType: "phone", social: "317-922-9890", photo: "", status: 'approved' },
+            { id: 1007, firstName: "Noah", lastName: "Nave", planCategory: "College", college: "Purdue - West Lafayette", major: "Undecided", socialType: "email", social: "noahnave@gmail.com", photo: "", status: 'approved' },
+            { id: 1008, firstName: "Claire", lastName: "Wolfgang", planCategory: "College", college: "Indiana University", major: "Undecided", socialType: "phone", social: "3173763629", photo: "", status: 'approved' },
+            { id: 1009, firstName: "Riya", lastName: "Koya", planCategory: "College", college: "Harvard College", major: "Undecided", socialType: "instagram", social: "riyakoya1", photo: "", status: 'approved' },
+            { id: 1010, firstName: "Lilliana", lastName: "Cate", planCategory: "College", college: "Hope College", major: "Undecided", socialType: "instagram", social: "lillianamcate", photo: "", status: 'approved' },
+            { id: 1011, firstName: "Elliott", lastName: "Mason", planCategory: "Trade School", college: "Toyota t-ten", major: "Undecided", socialType: "instagram", social: "defnotelliott", photo: "", status: 'approved' },
+            { id: 1012, firstName: "Bailey", lastName: "Buikema", planCategory: "College", college: "Purdue University Lafayette", major: "Undecided", socialType: "instagram", social: "bailey_buike", photo: "", status: 'approved' },
+            { id: 1013, firstName: "Kiera", lastName: "Baker", planCategory: "College", college: "Indiana University", major: "Undecided", socialType: "instagram", social: "", photo: "", status: 'approved' },
+            { id: 1014, firstName: "Emma", lastName: "Hu", planCategory: "College", college: "Barnard College", major: "Undecided", socialType: "instagram", social: "", photo: "", status: 'approved' },
+            { id: 1015, firstName: "Jacob", lastName: "Mazza", planCategory: "College", college: "Purdue University", major: "Undecided", socialType: "instagram", social: "", photo: "", status: 'approved' },
+            { id: 1016, firstName: "Zahra", lastName: "Azu", planCategory: "College", college: "Spelman College", major: "Undecided", socialType: "instagram", social: "zahraaaa_azu", photo: "", status: 'approved' },
+            { id: 1017, firstName: "Cheryl", lastName: "Yu", planCategory: "College", college: "New York University", major: "Undecided", socialType: "instagram", social: "cheryl.f.yu", photo: "", status: 'approved' },
+            { id: 1018, firstName: "Abby", lastName: "Browning", planCategory: "College", college: "Purdue University WL", major: "Undecided", socialType: "instagram", social: "", photo: "", status: 'approved' },
+            { id: 1019, firstName: "Erica", lastName: "Zhao", planCategory: "College", college: "Yale University", major: "Undecided", socialType: "phone", social: "8123418278", photo: "", status: 'approved' },
+            { id: 1020, firstName: "Catrina", lastName: "Hensley", planCategory: "College", college: "Regent University", major: "Undecided", socialType: "instagram", social: "catrina.hensley", photo: "", status: 'approved' },
+            { id: 1021, firstName: "Natalie", lastName: "Bricker", planCategory: "College", college: "Purdue University", major: "Undecided", socialType: "instagram", social: "nat_bricker", photo: "", status: 'approved' },
+            { id: 1022, firstName: "Ankur", lastName: "Kapileshwar", planCategory: "College", college: "MIT", major: "Undecided", socialType: "instagram", social: "", photo: "", status: 'approved' },
+            { id: 1023, firstName: "Yashwanth", lastName: "Tanguturi", planCategory: "College", college: "Purdue West Lafayette", major: "Undecided", socialType: "instagram", social: "", photo: "", status: 'approved' }
+        ];
+
+        let profiles = JSON.parse(localStorage.getItem('chs_plans_v2')) || initialData;
+
+        function openModal(id) { 
+            document.getElementById(id).classList.add('active'); 
+            if(id === 'admin-login-modal') document.getElementById('admin-pass').focus();
+        }
+        
+        function closeModal(id) { 
+            document.getElementById(id).classList.remove('active');
+            if(id === 'add-modal') {
+                document.getElementById('submission-form').reset();
+                document.getElementById('edit-id').value = '';
+            }
+            if(id === 'admin-login-modal') {
+                document.getElementById('admin-pass').value = '';
+            }
+        }
+
+        function adminLogin() {
+            const passInput = document.getElementById('admin-pass');
+            if (passInput.value === ADMIN_PASSWORD) {
+                isAdmin = true;
+                passInput.value = ''; 
+                document.getElementById('logout-btn').classList.remove('hidden');
+                document.getElementById('pending-section').classList.remove('hidden');
+                document.getElementById('login-trigger').classList.add('hidden');
+                closeModal('admin-login-modal');
+                renderGrids();
+            } else { 
+                alert("Wrong password"); 
+                passInput.value = '';
+            }
+        }
+
+        function adminLogout() {
+            isAdmin = false;
+            document.getElementById('admin-pass').value = '';
+            document.getElementById('logout-btn').classList.add('hidden');
+            document.getElementById('pending-section').classList.add('hidden');
+            document.getElementById('login-trigger').classList.remove('hidden');
+            renderGrids();
+        }
+
+        document.getElementById('submission-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const editId = document.getElementById('edit-id').value;
+            const photoFile = document.getElementById('photo').files[0];
+            let photoBase64 = '';
+            
+            let existing = editId ? profiles.find(p => p.id == editId) : null;
+
+            if (photoFile) {
+                photoBase64 = await new Promise(r => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => r(e.target.result);
+                    reader.readAsDataURL(photoFile);
+                });
+            } else if (existing) { photoBase64 = existing.photo; }
+
+            const profileData = {
+                id: existing ? existing.id : Date.now(),
+                firstName: document.getElementById('first-name').value,
+                lastName: document.getElementById('last-name').value,
+                planCategory: document.getElementById('plan-category').value || 'College',
+                college: document.getElementById('college').value || 'Decision Pending',
+                major: document.getElementById('major').value || 'Undecided',
+                socialType: document.getElementById('social-type').value,
+                social: document.getElementById('social').value.replace(/^(insta:|@)/, ''),
+                photo: photoBase64,
+                status: existing ? existing.status : 'pending'
+            };
+
+            if (existing) {
+                profiles[profiles.findIndex(p => p.id == editId)] = profileData;
+            } else {
+                profiles.push(profileData);
+                alert("Thank you! Your plan has been submitted for approval.");
+            }
+
+            localStorage.setItem('chs_plans_v2', JSON.stringify(profiles));
+            renderGrids();
+            closeModal('add-modal');
+        };
+
+        function handleApprove(e, id) {
+            e.stopPropagation();
+            const idx = profiles.findIndex(p => p.id === id);
+            profiles[idx].status = 'approved';
+            localStorage.setItem('chs_plans_v2', JSON.stringify(profiles));
+            renderGrids();
+        }
+
+        function handleDelete(e, id) {
+            e.stopPropagation();
+            if(confirm('Delete this profile permanently?')) {
+                profiles = profiles.filter(p => p.id !== id);
+                localStorage.setItem('chs_plans_v2', JSON.stringify(profiles));
+                renderGrids();
+            }
+        }
+
+        function handleEdit(e, id) {
+            e.stopPropagation();
+            const p = profiles.find(p => p.id === id);
+            document.getElementById('edit-id').value = p.id;
+            document.getElementById('first-name').value = p.firstName;
+            document.getElementById('last-name').value = p.lastName;
+            document.getElementById('plan-category').value = p.planCategory;
+            document.getElementById('college').value = p.college;
+            document.getElementById('major').value = p.major;
+            document.getElementById('social-type').value = p.socialType;
+            document.getElementById('social').value = p.social;
+            document.getElementById('modal-title').innerText = "Edit Profile";
+            document.getElementById('submit-btn-text').innerText = "Update Profile";
+            openModal('add-modal');
+        }
+
+        function createCard(p) {
+            const initials = (p.firstName[0] + (p.lastName[0] || "")).toUpperCase();
+            const icon = SOCIAL_ICONS[p.socialType || 'instagram'];
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-xl shadow-sm person-card overflow-hidden border border-gray-100 relative';
+            
+            let adminBtns = isAdmin ? `
+                <div class="absolute top-2 right-2 flex gap-1 z-30">
+                    ${p.status === 'pending' ? `<button onclick="handleApprove(event, ${p.id})" class="bg-green-600 text-white w-7 h-7 rounded-full shadow flex items-center justify-center hover:bg-green-700 transition-colors"><i class="fas fa-check text-[10px]"></i></button>` : ''}
+                    <button onclick="handleEdit(event, ${p.id})" class="bg-blue-600 text-white w-7 h-7 rounded-full shadow flex items-center justify-center hover:bg-blue-700 transition-colors"><i class="fas fa-edit text-[10px]"></i></button>
+                    <button onclick="handleDelete(event, ${p.id})" class="bg-red-600 text-white w-7 h-7 rounded-full shadow flex items-center justify-center hover:bg-red-700 transition-colors"><i class="fas fa-trash text-[10px]"></i></button>
+                </div>` : '';
+
+            const img = p.photo ? `<img src="${p.photo}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-4xl font-bold text-white bg-[#1e40af]">${initials}</div>`;
+
+            card.innerHTML = `
+                ${adminBtns}
+                <div class="card-image-container">${img}</div>
+                <div class="p-4 md:p-6 flex-grow text-center">
+                    <h2 class="text-base md:text-xl font-bold text-gray-800 mb-1 leading-tight">${p.firstName} ${p.lastName}</h2>
+                    <div class="border-t border-gray-100 pt-3 mt-2">
+                        <p class="text-[9px] md:text-[10px] font-extrabold text-blue-800 uppercase tracking-widest mb-1">${p.planCategory}</p>
+                        <p class="text-sm md:text-base font-semibold text-gray-700 leading-tight">${p.college}</p>
+                        <p class="text-xs md:text-sm text-gray-500 italic mt-1">${p.major}</p>
+                    </div>
+                    ${p.social ? `<div class="mt-4 flex items-center justify-center text-blue-600 font-semibold text-[10px] md:text-xs"><i class="${icon} mr-2"></i> ${p.social}</div>` : ''}
+                </div>`;
+            return card;
+        }
+
+        function renderGrids() {
+            const query = document.getElementById('search-bar').value.toLowerCase();
+            const filteredProfiles = profiles.filter(p => {
+                const searchString = `${p.firstName} ${p.lastName} ${p.college} ${p.planCategory} ${p.major}`.toLowerCase();
+                return searchString.includes(query);
+            });
+
+            const sorted = [...filteredProfiles].sort((a, b) => (a.lastName || "").localeCompare(b.lastName || "") || a.firstName.localeCompare(b.firstName));
+            
+            const publicGrid = document.getElementById('profile-grid');
+            const pendingGrid = document.getElementById('pending-grid');
+            publicGrid.innerHTML = ''; pendingGrid.innerHTML = '';
+
+            let pCount = 0;
+            sorted.forEach(p => {
+                if (p.status === 'approved') publicGrid.appendChild(createCard(p));
+                else if (isAdmin && p.status === 'pending') {
+                    pendingGrid.appendChild(createCard(p));
+                    pCount++;
+                }
+            });
+
+            document.getElementById('pending-section').classList.toggle('hidden', !isAdmin || pCount === 0);
+        }
+
+        document.getElementById('admin-pass').addEventListener('keypress', (e) => { if (e.key === 'Enter') adminLogin(); });
+        renderGrids();
+    </script>
+</body>
+</html>
