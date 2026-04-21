@@ -24,11 +24,11 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
         
-        /* PORTRAIT CARDS: UPDATED TO 5 PER ROW */
+        /* PORTRAIT CARDS: 5 PER ROW */
         .profile-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 1rem;
+            gap: 1.25rem;
         }
 
         .person-card { 
@@ -75,18 +75,15 @@
         }
         .active .modal-content { transform: scale(1); opacity: 1; }
         
-        /* Mobile adjustment */
-        @media (max-width: 1024px) {
-            .profile-grid { grid-template-columns: repeat(3, 1fr); }
-        }
+        /* Mobile adjustment for the 3-row layout */
         @media (max-width: 640px) {
             .profile-grid { 
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(2, 1fr); /* Switched to 2 on mobile to fit reverted font size */
                 gap: 0.5rem; 
             }
-            .person-card h2 { font-size: 0.75rem !important; }
-            .person-card p { font-size: 0.65rem !important; }
-            .p-4 { padding: 0.5rem !important; }
+            .person-card h2 { font-size: 0.875rem !important; }
+            .person-card p { font-size: 0.7rem !important; }
+            .p-6 { padding: 0.75rem !important; }
         }
     </style>
 </head>
@@ -193,7 +190,7 @@
 
     <!-- ADMIN LOGIN MODAL -->
     <div id="admin-login-modal" class="modal-overlay" onclick="closeModal('admin-login-modal')">
-        <div class="modal-content max-sm p-8 text-center" onclick="event.stopPropagation()">
+        <div class="modal-content max-w-sm p-8 text-center" onclick="event.stopPropagation()">
             <h2 class="text-xl font-bold text-gray-800 mb-4">Admin Access</h2>
             <input type="password" id="admin-pass" placeholder="Password" class="w-full p-3 border border-gray-300 rounded-lg mb-4 text-center outline-none focus:ring-2 focus:ring-blue-500">
             <div class="flex gap-2">
@@ -208,49 +205,32 @@
         let isAdmin = false;
         const SOCIAL_ICONS = { instagram: 'fab fa-instagram', tiktok: 'fab fa-tiktok', phone: 'fas fa-phone-alt', email: 'fas fa-envelope' };
 
-        // Preloaded data
-        const rawData = [
-            { name: "Georgia Kraabel", planCategory: "College", college: "Miami University", socialType: "email", social: "georgiak1883@gmail.com" },
-            { name: "Bhavana Rupakula", planCategory: "College", college: "Purdue University", socialType: "phone", social: "(425) 469-4918" },
-            { name: "Jack Miller", planCategory: "College", college: "Johns Hopkins University", socialType: "instagram", social: "" },
-            { name: "Elliot Gabey", planCategory: "College", college: "University of Arkansas", socialType: "instagram", social: "elliotgabey" },
-            { name: "Naaman Duckworth", planCategory: "College", college: "American University in Washington DC", socialType: "phone", social: "3173856083" },
-            { name: "Eva Marci", planCategory: "College", college: "Western Washington University", socialType: "instagram", social: "eva_marci1" },
-            { name: "Ruby Cummings", planCategory: "College", college: "Johnson and Wales", socialType: "phone", social: "317-922-9890" },
-            { name: "Noah Nave", planCategory: "College", college: "Purdue - West Lafayette", socialType: "email", social: "noahnave@gmail.com" },
-            { name: "Claire Wolfgang", planCategory: "College", college: "Indiana University", socialType: "phone", social: "3173763629" },
-            { name: "Riya Koya", planCategory: "College", college: "Harvard College", socialType: "instagram", social: "riyakoya1" },
-            { name: "Lilliana Cate", planCategory: "College", college: "Hope College", socialType: "instagram", social: "lillianamcate" },
-            { name: "Elliott Mason", planCategory: "Trade School", college: "Toyotas t-ten program", socialType: "instagram", social: "defnotelliott" },
-            { name: "Bailey Buikema", planCategory: "College", college: "Purdue University Lafayette", socialType: "instagram", social: "bailey_buike" },
-            { name: "Kiera Baker", planCategory: "College", college: "Indiana University", socialType: "instagram", social: "" },
-            { name: "Emma Hu", planCategory: "College", college: "Barnard College of Columbia", socialType: "instagram", social: "" },
-            { name: "Jacob Mazza", planCategory: "College", college: "Purdue University", socialType: "instagram", social: "" },
-            { name: "Zahra Azu", planCategory: "College", college: "Spelman College", socialType: "instagram", social: "zahraaaa_azu" },
-            { name: "Cheryl Yu", planCategory: "College", college: "New York University", socialType: "instagram", social: "cheryl.f.yu" },
-            { name: "Abby Browning", planCategory: "College", college: "Purdue University WL", socialType: "instagram", social: "" },
-            { name: "Erica Zhao", planCategory: "College", college: "Yale University", socialType: "phone", social: "8123418278" },
-            { name: "Catrina Hensley", planCategory: "College", college: "Regent University", socialType: "instagram", social: "catrina.hensley" },
-            { name: "Natalie Bricker", planCategory: "College", college: "Purdue University", socialType: "instagram", social: "nat_bricker" },
-            { name: "Ankur Kapileshwar", planCategory: "College", college: "Massachusetts Institute of Technology", socialType: "instagram", social: "" },
-            { name: "Yashwanth Tanguturi", planCategory: "College", college: "Purdue University - West Lafayette", socialType: "instagram", social: "" }
+        const initialData = [
+            { id: 1000, firstName: "Georgia", lastName: "Kraabel", planCategory: "College", college: "Miami University", major: "Undecided", socialType: "email", social: "georgiak1883@gmail.com", photo: "", status: 'approved' },
+            { id: 1001, firstName: "Bhavana", lastName: "Rupakula", planCategory: "College", college: "Purdue University", major: "Undecided", socialType: "phone", social: "(425) 469-4918", photo: "", status: 'approved' },
+            { id: 1002, firstName: "Jack", lastName: "Miller", planCategory: "College", college: "Johns Hopkins University", major: "Undecided", socialType: "instagram", social: "", photo: "", status: 'approved' },
+            { id: 1003, firstName: "Elliot", lastName: "Gabey", planCategory: "College", college: "University of Arkansas", major: "Undecided", socialType: "instagram", social: "elliotgabey", photo: "", status: 'approved' },
+            { id: 1004, firstName: "Naaman", lastName: "Duckworth", planCategory: "College", college: "American University", major: "Undecided", socialType: "phone", social: "3173856083", photo: "", status: 'approved' },
+            { id: 1005, firstName: "Eva", lastName: "Marci", planCategory: "College", college: "Western Washington University", major: "Undecided", socialType: "instagram", social: "eva_marci1", photo: "", status: 'approved' },
+            { id: 1006, firstName: "Ruby", lastName: "Cummings", planCategory: "College", college: "Johnson and Wales", major: "Undecided", socialType: "phone", social: "317-922-9890", photo: "", status: 'approved' },
+            { id: 1007, firstName: "Noah", lastName: "Nave", planCategory: "College", college: "Purdue - West Lafayette", major: "Undecided", socialType: "email", social: "noahnave@gmail.com", photo: "", status: 'approved' },
+            { id: 1008, firstName: "Claire", lastName: "Wolfgang", planCategory: "College", college: "Indiana University", major: "Undecided", socialType: "phone", social: "3173763629", photo: "", status: 'approved' },
+            { id: 1009, firstName: "Riya", lastName: "Koya", planCategory: "College", college: "Harvard College", major: "Undecided", socialType: "instagram", social: "riyakoya1", photo: "", status: 'approved' },
+            { id: 1010, firstName: "Lilliana", lastName: "Cate", planCategory: "College", college: "Hope College", major: "Undecided", socialType: "instagram", social: "lillianamcate", photo: "", status: 'approved' },
+            { id: 1011, firstName: "Elliott", lastName: "Mason", planCategory: "Trade School", college: "Toyota t-ten", major: "Undecided", socialType: "instagram", social: "defnotelliott", photo: "", status: 'approved' },
+            { id: 1012, firstName: "Bailey", lastName: "Buikema", planCategory: "College", college: "Purdue University Lafayette", major: "Undecided", socialType: "instagram", social: "bailey_buike", photo: "", status: 'approved' },
+            { id: 1013, firstName: "Kiera", lastName: "Baker", planCategory: "College", college: "Indiana University", major: "Undecided", socialType: "instagram", social: "", photo: "", status: 'approved' },
+            { id: 1014, firstName: "Emma", lastName: "Hu", planCategory: "College", college: "Barnard College", major: "Undecided", socialType: "instagram", social: "", photo: "", status: 'approved' },
+            { id: 1015, firstName: "Jacob", lastName: "Mazza", planCategory: "College", college: "Purdue University", major: "Undecided", socialType: "instagram", social: "", photo: "", status: 'approved' },
+            { id: 1016, firstName: "Zahra", lastName: "Azu", planCategory: "College", college: "Spelman College", major: "Undecided", socialType: "instagram", social: "zahraaaa_azu", photo: "", status: 'approved' },
+            { id: 1017, firstName: "Cheryl", lastName: "Yu", planCategory: "College", college: "New York University", major: "Undecided", socialType: "instagram", social: "cheryl.f.yu", photo: "", status: 'approved' },
+            { id: 1018, firstName: "Abby", lastName: "Browning", planCategory: "College", college: "Purdue University WL", major: "Undecided", socialType: "instagram", social: "", photo: "", status: 'approved' },
+            { id: 1019, firstName: "Erica", lastName: "Zhao", planCategory: "College", college: "Yale University", major: "Undecided", socialType: "phone", social: "8123418278", photo: "", status: 'approved' },
+            { id: 1020, firstName: "Catrina", lastName: "Hensley", planCategory: "College", college: "Regent University", major: "Undecided", socialType: "instagram", social: "catrina.hensley", photo: "", status: 'approved' },
+            { id: 1021, firstName: "Natalie", lastName: "Bricker", planCategory: "College", college: "Purdue University", major: "Undecided", socialType: "instagram", social: "nat_bricker", photo: "", status: 'approved' },
+            { id: 1022, firstName: "Ankur", lastName: "Kapileshwar", planCategory: "College", college: "MIT", major: "Undecided", socialType: "instagram", social: "", photo: "", status: 'approved' },
+            { id: 1023, firstName: "Yashwanth", lastName: "Tanguturi", planCategory: "College", college: "Purdue West Lafayette", major: "Undecided", socialType: "instagram", social: "", photo: "", status: 'approved' }
         ];
-
-        const initialData = rawData.map((p, i) => {
-            const parts = p.name.split(' ');
-            return {
-                id: 1000 + i,
-                firstName: parts[0],
-                lastName: parts.slice(1).join(' '),
-                planCategory: p.planCategory,
-                college: p.college,
-                major: "Undecided",
-                socialType: p.socialType,
-                social: p.social,
-                photo: "",
-                status: 'approved'
-            }
-        });
 
         let profiles = JSON.parse(localStorage.getItem('chs_plans_v2')) || initialData;
 
@@ -370,49 +350,47 @@
         }
 
         function createCard(p) {
-            const initials = (p.firstName[0] + (p.lastName[0] || '')).toUpperCase();
+            const initials = (p.firstName[0] + (p.lastName[0] || "")).toUpperCase();
             const icon = SOCIAL_ICONS[p.socialType || 'instagram'];
             const card = document.createElement('div');
             card.className = 'bg-white rounded-xl shadow-sm person-card overflow-hidden border border-gray-100 relative';
             
             let adminBtns = isAdmin ? `
                 <div class="absolute top-2 right-2 flex gap-1 z-30">
-                    ${p.status === 'pending' ? `<button onclick="handleApprove(event, ${p.id})" class="bg-green-600 text-white w-5 h-5 rounded shadow flex items-center justify-center hover:bg-green-700 transition-colors"><i class="fas fa-check text-[8px]"></i></button>` : ''}
-                    <button onclick="handleEdit(event, ${p.id})" class="bg-blue-600 text-white w-5 h-5 rounded shadow flex items-center justify-center hover:bg-blue-700 transition-colors"><i class="fas fa-edit text-[8px]"></i></button>
-                    <button onclick="handleDelete(event, ${p.id})" class="bg-red-600 text-white w-5 h-5 rounded shadow flex items-center justify-center hover:bg-red-700 transition-colors"><i class="fas fa-trash text-[8px]"></i></button>
+                    ${p.status === 'pending' ? `<button onclick="handleApprove(event, ${p.id})" class="bg-green-600 text-white w-7 h-7 rounded-full shadow flex items-center justify-center hover:bg-green-700 transition-colors"><i class="fas fa-check text-[10px]"></i></button>` : ''}
+                    <button onclick="handleEdit(event, ${p.id})" class="bg-blue-600 text-white w-7 h-7 rounded-full shadow flex items-center justify-center hover:bg-blue-700 transition-colors"><i class="fas fa-edit text-[10px]"></i></button>
+                    <button onclick="handleDelete(event, ${p.id})" class="bg-red-600 text-white w-7 h-7 rounded-full shadow flex items-center justify-center hover:bg-red-700 transition-colors"><i class="fas fa-trash text-[10px]"></i></button>
                 </div>` : '';
 
-            const img = p.photo ? `<img src="${p.photo}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-3xl font-bold text-white bg-[#1e40af]">${initials}</div>`;
+            const img = p.photo ? `<img src="${p.photo}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-4xl font-bold text-white bg-[#1e40af]">${initials}</div>`;
 
             card.innerHTML = `
                 ${adminBtns}
                 <div class="card-image-container">${img}</div>
-                <div class="p-2 md:p-4 flex-grow text-center">
-                    <h2 class="text-[10px] md:text-sm font-bold text-gray-800 mb-0.5 leading-tight">${p.firstName} ${p.lastName}</h2>
-                    <div class="border-t border-gray-100 pt-1 mt-1">
-                        <p class="text-[7px] md:text-[8px] font-extrabold text-blue-800 uppercase tracking-widest mb-0.5">${p.planCategory}</p>
-                        <p class="text-[8px] md:text-[10px] font-semibold text-gray-700 leading-tight">${p.college}</p>
-                        <p class="text-[7px] md:text-[8px] text-gray-500 italic mt-0.5">${p.major}</p>
+                <div class="p-4 md:p-6 flex-grow text-center">
+                    <h2 class="text-base md:text-xl font-bold text-gray-800 mb-1 leading-tight">${p.firstName} ${p.lastName}</h2>
+                    <div class="border-t border-gray-100 pt-3 mt-2">
+                        <p class="text-[9px] md:text-[10px] font-extrabold text-blue-800 uppercase tracking-widest mb-1">${p.planCategory}</p>
+                        <p class="text-sm md:text-base font-semibold text-gray-700 leading-tight">${p.college}</p>
+                        <p class="text-xs md:text-sm text-gray-500 italic mt-1">${p.major}</p>
                     </div>
-                    ${p.social ? `<div class="mt-2 flex items-center justify-center text-blue-600 font-semibold text-[7px] md:text-[9px]"><i class="${icon} mr-1"></i> ${p.social}</div>` : ''}
+                    ${p.social ? `<div class="mt-4 flex items-center justify-center text-blue-600 font-semibold text-[10px] md:text-xs"><i class="${icon} mr-2"></i> ${p.social}</div>` : ''}
                 </div>`;
             return card;
         }
 
         function renderGrids() {
-            const searchTerm = document.getElementById('search-bar').value.toLowerCase();
-            
+            const query = document.getElementById('search-bar').value.toLowerCase();
             const filteredProfiles = profiles.filter(p => {
                 const searchString = `${p.firstName} ${p.lastName} ${p.college} ${p.planCategory} ${p.major}`.toLowerCase();
-                return searchString.includes(searchTerm);
+                return searchString.includes(query);
             });
 
             const sorted = [...filteredProfiles].sort((a, b) => (a.lastName || "").localeCompare(b.lastName || "") || a.firstName.localeCompare(b.firstName));
             
             const publicGrid = document.getElementById('profile-grid');
             const pendingGrid = document.getElementById('pending-grid');
-            publicGrid.innerHTML = '';
-            pendingGrid.innerHTML = '';
+            publicGrid.innerHTML = ''; pendingGrid.innerHTML = '';
 
             let pCount = 0;
             sorted.forEach(p => {
@@ -426,10 +404,7 @@
             document.getElementById('pending-section').classList.toggle('hidden', !isAdmin || pCount === 0);
         }
 
-        document.getElementById('admin-pass').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') adminLogin();
-        });
-
+        document.getElementById('admin-pass').addEventListener('keypress', (e) => { if (e.key === 'Enter') adminLogin(); });
         renderGrids();
     </script>
 </body>
