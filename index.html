@@ -68,34 +68,9 @@
         .modal-content { transform: scale(0.95); opacity: 0; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); background: white; border-radius: 0.75rem; width: 100%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
         .active .modal-content { transform: scale(1); opacity: 1; }
 
-        /* Updated Form Styles to match Image */
-        .form-label {
-            display: block;
-            font-size: 11px;
-            font-weight: 800;
-            color: #4b5563;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 6px;
-        }
-        .form-input {
-            width: 100%;
-            padding: 12px 16px;
-            background-color: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            outline: none;
-            color: #111827;
-            transition: all 0.2s;
-        }
-        .form-input:focus {
-            border-color: #1e40af;
-            background-color: #fff;
-            box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.1);
-        }
-        .form-input::placeholder {
-            color: #9ca3af;
-        }
+        .form-label { display: block; font-size: 11px; font-weight: 800; color: #4b5563; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+        .form-input { width: 100%; padding: 12px 16px; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; outline: none; color: #111827; transition: all 0.2s; }
+        .form-input:focus { border-color: #1e40af; background-color: #fff; box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.1); }
 
         @media (max-width: 1024px) { .profile-grid { grid-template-columns: repeat(3, 1fr); } }
         @media (max-width: 640px) { .profile-grid { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; } .person-card h2 { font-size: 0.875rem !important; } .person-card p { font-size: 0.7rem !important; } .p-6 { padding: 0.75rem !important; } }
@@ -103,9 +78,18 @@
 </head>
 <body class="min-h-screen bg-gray-50 flex flex-col">
 
+    <!-- HEADER -->
     <header class="bg-white shadow-md sticky top-0 z-40 py-8 px-4">
         <div class="max-w-7xl mx-auto flex flex-col items-center text-center">
-            <img src="https://resources.finalsite.net/images/f_auto,q_auto/v1668797119/ccsk12inus/awfkuopbc2f6uupyira9/CarmelHighSchoolLogo.png" alt="CHS Greyhound Logo" class="h-16 w-auto mb-3" />
+            
+            <!-- LOGO AREA -->
+            <div class="flex items-center justify-center gap-4 mb-3">
+                <img src="https://resources.finalsite.net/images/f_auto,q_auto/v1668797119/ccsk12inus/awfkuopbc2f6uupyira9/CarmelHighSchoolLogo.png" alt="CHS Greyhound Logo" class="h-14 md:h-16 w-auto" />
+                <div class="h-10 w-px bg-gray-300"></div> <!-- Vertical Divider Line -->
+                <!-- REPLACE THE LINK BELOW WITH YOUR UPLOADED LOGO LINK -->
+                <img src="https://drive.google.com/thumbnail?id=1XlAUX5OyVyLIpu40TtyNliytCzn66ZnS&sz=w1200" alt="HiLite Logo" class="h-12 md:h-14 w-auto" />
+            </div>
+
             <h1 class="text-2xl md:text-4xl font-extrabold text-blue-800 leading-tight">Class of 2026<br>Future Plans</h1>
             <p class="text-gray-500 mt-2 text-sm italic font-medium mb-6">Brought to you by <a href="https://hilite.org" class="hover:text-blue-600 underline text-blue-800">HiLite News</a></p>
 
@@ -139,74 +123,36 @@
         <button id="login-trigger" onclick="openModal('admin-login-modal')" class="text-gray-300 hover:text-gray-500 text-xs transition-colors font-medium">Admin Login</button>
     </footer>
 
-    <!-- ADD/EDIT MODAL - Styled to match image -->
+    <!-- ADD/EDIT MODAL -->
     <div id="add-modal" class="modal-overlay" onclick="closeModal('add-modal')">
         <div class="modal-content max-w-lg p-8" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-4">
                 <h2 id="modal-title" class="text-3xl font-extrabold text-[#1e40af]">Submit Your Plan</h2>
-                <button onclick="closeModal('add-modal')" class="text-gray-400 hover:text-gray-600 transition-colors">
-                    <i class="fas fa-times text-2xl"></i>
-                </button>
+                <button onclick="closeModal('add-modal')" class="text-gray-400 hover:text-gray-600 transition-colors"><i class="fas fa-times text-2xl"></i></button>
             </div>
-            
             <hr class="border-gray-200 mb-8">
-
             <form id="submission-form" class="space-y-6">
                 <input type="hidden" id="edit-id">
-                
                 <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="form-label">First Name</label>
-                        <input type="text" id="first-name" required class="form-input">
-                    </div>
-                    <div>
-                        <label class="form-label">Last Name</label>
-                        <input type="text" id="last-name" required class="form-input">
-                    </div>
+                    <div><label class="form-label">First Name</label><input type="text" id="first-name" required class="form-input"></div>
+                    <div><label class="form-label">Last Name</label><input type="text" id="last-name" required class="form-input"></div>
                 </div>
-
                 <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="form-label">Plan Category</label>
-                        <input type="text" id="plan-category" placeholder="e.g. College" class="form-input">
-                    </div>
-                    <div>
-                        <label class="form-label">Institution</label>
-                        <input type="text" id="college" placeholder="e.g. Purdue University" class="form-input">
-                    </div>
+                    <div><label class="form-label">Plan Category</label><input type="text" id="plan-category" placeholder="e.g. College" class="form-input"></div>
+                    <div><label class="form-label">Institution</label><input type="text" id="college" placeholder="e.g. Purdue University" class="form-input"></div>
                 </div>
-
-                <div>
-                    <label class="form-label">Intended Major / Focus</label>
-                    <input type="text" id="major" placeholder="e.g. Business Administration" class="form-input">
-                </div>
-
+                <div><label class="form-label">Intended Major / Focus</label><input type="text" id="major" placeholder="e.g. Business Administration" class="form-input"></div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="form-label">Type</label>
                         <select id="social-type" class="form-input appearance-none bg-no-repeat bg-right pr-10" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%236b7280%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E'); background-position: right 0.75rem center; background-size: 1.2em auto;">
-                            <option value="instagram">Instagram</option>
-                            <option value="tiktok">TikTok</option>
-                            <option value="phone">Phone</option>
-                            <option value="email">Email</option>
+                            <option value="instagram">Instagram</option><option value="tiktok">TikTok</option><option value="phone">Phone</option><option value="email">Email</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="form-label">Handle / Info</label>
-                        <input type="text" id="social" placeholder="username" class="form-input">
-                    </div>
+                    <div><label class="form-label">Handle / Info</label><input type="text" id="social" placeholder="username" class="form-input"></div>
                 </div>
-
-                <div>
-                    <label class="form-label">Photo (Optional)</label>
-                    <input type="file" id="photo" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
-                </div>
-
-                <div class="pt-2">
-                    <button type="submit" id="submit-btn-text" class="w-full bg-[#1e40af] text-white font-extrabold py-4 rounded-lg shadow-lg hover:bg-blue-800 transition active:scale-[0.98] uppercase tracking-wider text-lg">
-                        Submit for Approval
-                    </button>
-                </div>
+                <div><label class="form-label">Photo (Optional)</label><input type="file" id="photo" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"></div>
+                <div class="pt-2"><button type="submit" id="submit-btn-text" class="w-full bg-[#1e40af] text-white font-extrabold py-4 rounded-lg shadow-lg hover:bg-blue-800 transition active:scale-[0.98] uppercase tracking-wider text-lg">Submit for Approval</button></div>
             </form>
         </div>
     </div>
@@ -228,14 +174,8 @@
         let isAdmin = false;
         const SOCIAL_ICONS = { instagram: 'fab fa-instagram', tiktok: 'fab fa-tiktok', phone: 'fas fa-phone-alt', email: 'fas fa-envelope' };
 
-        function openModal(id) { 
-            document.getElementById(id).classList.add('active'); if(id === 'admin-login-modal') document.getElementById('admin-pass').focus(); 
-        }
-        function closeModal(id) { 
-            document.getElementById(id).classList.remove('active');
-            if(id === 'admin-login-modal') document.getElementById('admin-pass').value = '';
-            if(id === 'add-modal') { document.getElementById('submission-form').reset(); document.getElementById('edit-id').value = ''; document.getElementById('modal-title').innerText = "Submit Your Plan"; }
-        }
+        function openModal(id) { document.getElementById(id).classList.add('active'); if(id === 'admin-login-modal') document.getElementById('admin-pass').focus(); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); if(id === 'admin-login-modal') document.getElementById('admin-pass').value = ''; if(id === 'add-modal') { document.getElementById('submission-form').reset(); document.getElementById('edit-id').value = ''; document.getElementById('modal-title').innerText = "Submit Your Plan"; } }
 
         function adminLogin() { if (document.getElementById('admin-pass').value === ADMIN_PASSWORD) { isAdmin = true; document.getElementById('logout-btn').classList.remove('hidden'); document.getElementById('login-trigger').classList.add('hidden'); closeModal('admin-login-modal'); renderGrids(); } else { alert("Wrong password"); } }
         function adminLogout() { isAdmin = false; document.getElementById('logout-btn').classList.add('hidden'); document.getElementById('login-trigger').classList.remove('hidden'); renderGrids(); }
