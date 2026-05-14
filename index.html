@@ -11,7 +11,7 @@
     <!-- FIREBASE SDKS -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, push, onValue, update, remove, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, push, onValue, update, remove, get, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBRDhCHyBnx64PUN1fXSciKdeuD2exQuxE",
@@ -26,9 +26,26 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const profilesRef = ref(db, 'profiles');
+        const pagesRef = ref(db, 'pages');
 
         window.profiles = [];
+        window.pages = [];
+        window.activePageId = "Class of 2026";
 
+        // Load Pages from Firebase
+        onValue(pagesRef, (snapshot) => {
+            const data = snapshot.val();
+            if (!data) {
+                // Initialize default page if database is empty
+                set(pagesRef, { "default": { name: "Class of 2026" } });
+                return;
+            }
+            window.pages = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+            renderTabs();
+            renderGrids();
+        });
+
+        // Load Profiles from Firebase
         onValue(profilesRef, (snapshot) => {
             const data = snapshot.val();
             window.profiles = [];
@@ -44,6 +61,9 @@
         window.submitToFirebase = async (profileData) => { await push(profilesRef, profileData); };
         window.updateFirebase = async (key, updatedData) => { await update(ref(db, `profiles/${key}`), updatedData); };
         window.deleteFirebase = async (key) => { await remove(ref(db, `profiles/${key}`)); };
+        window.addPageToFirebase = async (name) => { await push(pagesRef, { name: name }); };
+        window.deletePageFromFirebase = async (key) => { await remove(ref(db, `pages/${key}`)); };
+
     </script>
 
     <script>
@@ -73,14 +93,14 @@
         .form-input { width: 100%; padding: 12px 16px; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; outline: none; color: #111827; transition: all 0.2s; }
         .form-input:focus { border-color: #1e40af; background-color: #fff; box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.1); }
 
-        /* Banner Folding Logic */
         header { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         #header-expanded-content { transition: all 0.3s ease; max-height: 500px; opacity: 1; }
         
-        /* Sticky Class applied via JS */
         .header-scrolled { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
         .header-scrolled #header-expanded-content { max-height: 0; opacity: 0; pointer-events: none; margin-bottom: 0 !important; transform: translateY(-20px); overflow: hidden; }
-        .header-scrolled #search-container { max-width: 100%; }
+
+        .tab-btn { border-bottom: 3px solid transparent; transition: all 0.2s; }
+        .tab-btn.active { border-color: #1e40af; color: #1e40af; font-weight: 700; }
 
         @media (max-width: 1024px) { .profile-grid { grid-template-columns: repeat(3, 1fr); } }
         @media (max-width: 640px) { .profile-grid { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; } .person-card h2 { font-size: 0.875rem !important; } .person-card p { font-size: 0.7rem !important; } .p-6 { padding: 0.75rem !important; } }
@@ -92,19 +112,17 @@
     <header id="main-header" class="bg-white shadow-md sticky top-0 z-40 py-8 px-4 flex flex-col items-center">
         <div class="max-w-7xl w-full flex flex-col items-center">
             
-            <!-- LOGOS AND TITLES (This part folds up) -->
             <div id="header-expanded-content" class="flex flex-col items-center text-center mb-6">
                 <div class="flex items-center justify-center gap-4 mb-3">
                     <img src="https://resources.finalsite.net/images/f_auto,q_auto/v1668797119/ccsk12inus/awfkuopbc2f6uupyira9/CarmelHighSchoolLogo.png" alt="CHS Greyhound Logo" class="h-14 md:h-16 w-auto" />
                     <div class="h-10 w-px bg-gray-300"></div>
                     <img src="https://drive.google.com/thumbnail?id=1XlAUX5OyVyLIpu40TtyNliytCzn66ZnS&sz=w1200" alt="HiLite Logo" class="h-12 md:h-14 w-auto" />
                 </div>
-                <h1 class="text-2xl md:text-4xl font-extrabold text-blue-800 leading-tight">Class of 2026<br>Future Plans</h1>
+                <h1 class="text-2xl md:text-4xl font-extrabold text-blue-800 leading-tight">Future Plans</h1>
                 <p class="text-gray-500 mt-2 text-sm italic font-medium">Brought to you by <a href="https://hilite.org" class="hover:text-blue-600 underline text-blue-800">HiLite News</a></p>
             </div>
 
-            <!-- SEARCH AND ACTION BAR (This part stays fixed/thin) -->
-            <div id="search-container" class="w-full max-w-4xl flex items-center gap-3 transition-all duration-300">
+            <div id="search-container" class="w-full max-w-4xl flex items-center gap-3 transition-all duration-300 mb-4">
                 <div class="relative flex-grow">
                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400"><i class="fas fa-search"></i></span>
                     <input type="text" id="search-bar" onkeyup="renderGrids()" placeholder="Search name, college, or major..." 
@@ -114,10 +132,20 @@
                 <button id="add-profile-btn" onclick="openModal('add-modal')" class="bg-blue-800 text-white font-extrabold py-2 px-4 md:px-6 rounded-full shadow-lg hover:bg-blue-700 transition flex items-center gap-2 whitespace-nowrap text-sm">
                     <i class="fas fa-plus"></i> <span class="hidden sm:inline">Add Your Plan</span>
                 </button>
+
+                <!-- Admin Only Toggle -->
+                <button id="manage-pages-btn" onclick="openModal('pages-modal')" class="hidden bg-gray-100 text-gray-600 font-bold py-2 px-4 rounded-full hover:bg-gray-200 transition text-sm">
+                    <i class="fas fa-layer-group"></i>
+                </button>
                 
                 <button id="logout-btn" class="hidden text-gray-400 text-xs font-semibold hover:text-red-500 transition-colors" onclick="adminLogout()">
                     <i class="fas fa-sign-out-alt text-lg"></i>
                 </button>
+            </div>
+
+            <!-- Tabs Navigation -->
+            <div id="tabs-container" class="w-full max-w-4xl flex gap-6 overflow-x-auto no-scrollbar border-t border-gray-100 pt-2 justify-center">
+                <!-- Tabs injected by renderTabs() -->
             </div>
         </div>
     </header>
@@ -139,6 +167,25 @@
         <button id="login-trigger" onclick="openModal('admin-login-modal')" class="text-gray-300 hover:text-gray-500 text-xs transition-colors font-medium">Admin Login</button>
     </footer>
 
+    <!-- MANAGE PAGES MODAL (Admin Only) -->
+    <div id="pages-modal" class="modal-overlay" onclick="closeModal('pages-modal')">
+        <div class="modal-content max-w-md p-8" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-6 border-b-2 border-blue-100 pb-4">
+                <h2 class="text-2xl font-bold text-blue-800">Manage Pages</h2>
+                <button onclick="closeModal('pages-modal')" class="text-gray-400 hover:text-gray-600 transition-colors"><i class="fas fa-times text-2xl"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div class="flex gap-2">
+                    <input type="text" id="new-page-name" placeholder="Page Name (e.g., Class of 2027)" class="form-input flex-grow">
+                    <button onclick="addNewPage()" class="bg-blue-800 text-white px-4 rounded-lg font-bold">Add</button>
+                </div>
+                <div id="admin-pages-list" class="space-y-2 mt-4 max-h-60 overflow-y-auto">
+                    <!-- List of pages for deletion -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ADD/EDIT MODAL -->
     <div id="add-modal" class="modal-overlay" onclick="closeModal('add-modal')">
         <div class="modal-content max-w-lg p-8" onclick="event.stopPropagation()">
@@ -146,6 +193,7 @@
                 <h2 id="modal-title" class="text-3xl font-extrabold text-[#1e40af]">Submit Your Plan</h2>
                 <button onclick="closeModal('add-modal')" class="text-gray-400 hover:text-gray-600 transition-colors"><i class="fas fa-times text-2xl"></i></button>
             </div>
+            <p class="text-xs text-blue-600 font-bold mb-4 italic">Submitting to: <span id="submit-page-name"></span></p>
             <hr class="border-gray-200 mb-8">
             <form id="submission-form" class="space-y-6">
                 <input type="hidden" id="edit-id">
@@ -173,7 +221,7 @@
         </div>
     </div>
 
-    <!-- ADMIN LOGIN -->
+    <!-- ADMIN LOGIN MODAL -->
     <div id="admin-login-modal" class="modal-overlay" onclick="closeModal('admin-login-modal')">
         <div class="modal-content max-w-sm p-8 text-center" onclick="event.stopPropagation()">
             <h2 class="text-xl font-bold text-gray-800 mb-4">Admin Access</h2>
@@ -186,25 +234,78 @@
     </div>
 
     <script>
-        // FOLDING SCRIPT
         window.addEventListener('scroll', () => {
             const header = document.getElementById('main-header');
-            if (window.scrollY > 80) {
-                header.classList.add('header-scrolled');
-            } else {
-                header.classList.remove('header-scrolled');
-            }
+            if (window.scrollY > 80) { header.classList.add('header-scrolled'); } 
+            else { header.classList.remove('header-scrolled'); }
         });
 
         const ADMIN_PASSWORD = "greyhounds2026"; 
         let isAdmin = false;
         const SOCIAL_ICONS = { instagram: 'fab fa-instagram', tiktok: 'fab fa-tiktok', phone: 'fas fa-phone-alt', email: 'fas fa-envelope' };
 
-        function openModal(id) { document.getElementById(id).classList.add('active'); if(id === 'admin-login-modal') document.getElementById('admin-pass').focus(); }
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); if(id === 'admin-login-modal') document.getElementById('admin-pass').value = ''; if(id === 'add-modal') { document.getElementById('submission-form').reset(); document.getElementById('edit-id').value = ''; } }
+        function openModal(id) { 
+            document.getElementById(id).classList.add('active'); 
+            if(id === 'admin-login-modal') document.getElementById('admin-pass').focus(); 
+            if(id === 'add-modal') document.getElementById('submit-page-name').innerText = window.activePageId;
+            if(id === 'pages-modal') renderAdminPages();
+        }
+        function closeModal(id) { 
+            document.getElementById(id).classList.remove('active');
+            if(id === 'admin-login-modal') document.getElementById('admin-pass').value = '';
+            if(id === 'add-modal') { document.getElementById('submission-form').reset(); document.getElementById('edit-id').value = ''; }
+        }
 
-        function adminLogin() { if (document.getElementById('admin-pass').value === ADMIN_PASSWORD) { isAdmin = true; document.getElementById('logout-btn').classList.remove('hidden'); document.getElementById('login-trigger').classList.add('hidden'); closeModal('admin-login-modal'); renderGrids(); } else { alert("Wrong password"); } }
-        function adminLogout() { isAdmin = false; document.getElementById('logout-btn').classList.add('hidden'); document.getElementById('login-trigger').classList.remove('hidden'); renderGrids(); }
+        function adminLogin() { 
+            if (document.getElementById('admin-pass').value === ADMIN_PASSWORD) { 
+                isAdmin = true; 
+                document.getElementById('logout-btn').classList.remove('hidden'); 
+                document.getElementById('manage-pages-btn').classList.remove('hidden'); 
+                document.getElementById('login-trigger').classList.add('hidden'); 
+                closeModal('admin-login-modal'); 
+                renderGrids(); 
+            } else { alert("Wrong password"); } 
+        }
+        function adminLogout() { 
+            isAdmin = false; 
+            document.getElementById('logout-btn').classList.add('hidden'); 
+            document.getElementById('manage-pages-btn').classList.add('hidden'); 
+            document.getElementById('login-trigger').classList.remove('hidden'); 
+            renderGrids(); 
+        }
+
+        async function addNewPage() {
+            const name = document.getElementById('new-page-name').value;
+            if (!name) return;
+            await window.addPageToFirebase(name);
+            document.getElementById('new-page-name').value = '';
+            renderAdminPages();
+        }
+
+        function renderAdminPages() {
+            const list = document.getElementById('admin-pages-list');
+            list.innerHTML = window.pages.map(p => `
+                <div class="flex justify-between items-center bg-gray-50 p-2 rounded">
+                    <span class="text-sm font-semibold">${p.name}</span>
+                    <button onclick="window.deletePageFromFirebase('${p.id}')" class="text-red-500"><i class="fas fa-trash"></i></button>
+                </div>
+            `).join('');
+        }
+
+        function renderTabs() {
+            const container = document.getElementById('tabs-container');
+            container.innerHTML = window.pages.map(p => `
+                <button onclick="setActivePage('${p.name}')" class="tab-btn py-2 text-sm font-medium whitespace-nowrap text-gray-500 ${window.activePageId === p.name ? 'active' : ''}">
+                    ${p.name}
+                </button>
+            `).join('');
+        }
+
+        function setActivePage(name) {
+            window.activePageId = name;
+            renderTabs();
+            renderGrids();
+        }
 
         document.getElementById('submission-form').onsubmit = async (e) => {
             e.preventDefault();
@@ -223,7 +324,8 @@
                 socialType: document.getElementById('social-type').value,
                 social: document.getElementById('social').value.replace(/^(insta:|@)/, ''),
                 photo: photoBase64,
-                status: existing ? existing.status : 'pending'
+                status: existing ? existing.status : 'pending',
+                pageId: existing ? existing.pageId : window.activePageId // Scope to current tab
             };
 
             if (existing) { await window.updateFirebase(editId, profileData); }
@@ -249,7 +351,12 @@
 
         window.renderGrids = () => {
             const query = document.getElementById('search-bar').value.toLowerCase();
-            const sorted = [...window.profiles].filter(p => `${p.firstName} ${p.lastName} ${p.college} ${p.major}`.toLowerCase().includes(query)).sort((a, b) => (a.lastName || "").localeCompare(b.lastName || ""));
+            // Filter by Active Tab AND Search Query
+            const sorted = [...window.profiles]
+                .filter(p => (p.pageId === window.activePageId || (!p.pageId && window.activePageId === "Class of 2026")))
+                .filter(p => `${p.firstName} ${p.lastName} ${p.college} ${p.major}`.toLowerCase().includes(query))
+                .sort((a, b) => (a.lastName || "").localeCompare(b.lastName || ""));
+            
             const publicGrid = document.getElementById('profile-grid');
             const pendingGrid = document.getElementById('pending-grid');
             publicGrid.innerHTML = ''; pendingGrid.innerHTML = '';
